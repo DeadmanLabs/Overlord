@@ -129,60 +129,61 @@ function mountTopbar(host) {
   const groupsHtml = NAV_GROUPS.map(dropdownGroup).join("");
 
   host.innerHTML = `
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 w-full">
-      <div class="flex items-center justify-between gap-3">
+    <div class="topbar-grid">
+      <div class="topbar-left">
         <a href="/" class="flex items-center gap-2 font-semibold tracking-wide">
           <i class="fa-solid fa-crown header-crown"></i> Overlord
         </a>
-        <button
-          id="nav-toggle"
-          class="md:hidden inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800/70 border border-slate-700"
-          aria-expanded="false"
-          aria-controls="nav-panel"
-        >
-          <i class="fa-solid fa-bars"></i>
-          <span>Menu</span>
-        </button>
       </div>
       <div
         id="nav-panel"
-        class="hidden md:flex md:flex-1 md:items-center md:justify-center gap-3"
+        class="topbar-center"
       >
         <nav id="nav-links" class="nav-dd-bar">
           ${groupsHtml}
         </nav>
-        <div id="nav-utility" class="flex flex-wrap items-center gap-2 md:w-auto md:justify-end md:shrink-0 md:ml-auto">
-          <button id="notify-toggle"
-            class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 hover:bg-slate-800"
-            title="Toggle notifications" aria-label="Toggle notifications">
-            <i class="fa-solid fa-bell"></i>
-            <span id="notify-badge" class="hidden min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center"></span>
+      </div>
+      <div id="nav-utility" class="topbar-right">
+        <div class="nav-dd-wrapper" data-group="user-actions">
+          <button id="user-actions-btn" class="user-actions-trigger" aria-haspopup="true" aria-expanded="false" title="Account actions" aria-label="Account actions">
+            <i class="fa-solid fa-bars-staggered"></i>
+            <span id="user-actions-dot" class="user-actions-dot hidden"></span>
           </button>
-          <button id="account-settings-btn"
-            class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-slate-800 text-slate-100 min-w-0 max-w-full md:max-w-none border border-slate-700/70 hover:bg-slate-700 transition-colors"
-            title="Open settings" aria-label="Open settings" type="button">
-            <i class="fa-solid fa-user-shield text-sky-300"></i>
-            <span id="username-display" class="truncate max-w-[110px] sm:max-w-[180px] md:max-w-none">Loading...</span>
-            <span id="role-badge" class="text-sm px-2 py-0.5 rounded-full bg-slate-700 shrink-0"></span>
-          </button>
-          <button id="logout-btn"
-            class="group inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-800/60 text-red-100 border border-red-700/60 transition-colors"
-            title="Logout" aria-label="Logout">
-            <i class="fa-solid fa-right-from-bracket text-rose-300 group-hover:text-rose-200 transition-colors"></i>
-          </button>
-          <button id="nav-hide-btn"
-            class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-slate-900/50 border border-slate-800 text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            title="Hide navigation (Ctrl+\\)" aria-label="Hide navigation">
-            <i class="fa-solid fa-eye-slash" style="font-size:0.75rem"></i>
-          </button>
+          <div class="nav-dd-menu user-actions-menu">
+            <button id="notify-toggle" class="user-actions-item"
+              title="Toggle notifications" aria-label="Toggle notifications">
+              <i class="fa-solid fa-bell user-actions-icon"></i>
+              <span class="user-actions-label">Notifications</span>
+              <span id="notify-badge" class="hidden min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center"></span>
+            </button>
+            <button id="nav-hide-btn" class="user-actions-item"
+              title="Hide navigation (Ctrl+\\)" aria-label="Hide navigation">
+              <i class="fa-solid fa-eye-slash user-actions-icon"></i>
+              <span class="user-actions-label">Hide nav</span>
+              <span class="user-actions-shortcut">Ctrl+\\</span>
+            </button>
+            <div class="user-actions-divider"></div>
+            <button id="logout-btn" class="user-actions-item user-actions-item--danger"
+              title="Logout" aria-label="Logout">
+              <i class="fa-solid fa-right-from-bracket user-actions-icon"></i>
+              <span class="user-actions-label">Logout</span>
+            </button>
+          </div>
         </div>
+        <button id="account-settings-btn"
+          class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-slate-800 text-slate-100 min-w-0 max-w-full md:max-w-none border border-slate-700/70 hover:bg-slate-700 transition-colors"
+          title="Open settings" aria-label="Open settings" type="button">
+          <i class="fa-solid fa-user-shield text-sky-300"></i>
+          <span id="username-display" class="truncate max-w-[110px] sm:max-w-[180px] md:max-w-none">Loading...</span>
+          <span id="role-badge" class="text-sm px-2 py-0.5 rounded-full bg-slate-700 shrink-0"></span>
+        </button>
       </div>
     </div>
   `;
 
   // Collect all link refs
   const refs = {
-    toggle: document.getElementById("nav-toggle"),
+    toggle: null,
     panel: document.getElementById("nav-panel"),
     collapseBtn: null,
     navLinks: document.getElementById("nav-links"),
