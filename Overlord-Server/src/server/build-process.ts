@@ -866,6 +866,38 @@ func runBoundFiles() {
         sendToStream({ type: "output", text: "Linux CGO: static linking enabled (avoids GLIBC version mismatch)\n", level: "info" });
       }
 
+      // Compile the plugin host shim so the agent can embed it via //go:embed.
+      // The shim is a small dynamically-linked binary that dlopen()s plugins on
+      // behalf of the statically-linked agent (static musl cannot call dlopen).
+      // We use the native 'cc' for amd64 (glibc, works on most servers) and the
+      // musl cross-compiler for arm targets (works on musl/Alpine targets).
+      if (os === "linux" && env.CGO_ENABLED === "1") {
+        const pluginHostSrc = path.join(clientDir, "cmd/agent/plugins/plugin_host/plugin_host.c");
+        if (fs.existsSync(pluginHostSrc)) {
+          const archSuffix = actualArch === "amd64" ? "amd64"
+                           : actualArch === "arm64" ? "arm64"
+                           : "arm";
+          const pluginHostOut = path.join(clientDir, `cmd/agent/plugins/plugin_host/plugin_host_${archSuffix}`);
+          // For amd64 use the native system compiler (glibc) so the shim runs on
+          // glibc targets.  For cross-compiled arches use env.CC (musl) without -static.
+          const hostCC = actualArch === "amd64" ? "cc" : (env.CC || "cc");
+          sendToStream({ type: "output", text: `Compiling plugin host shim (${archSuffix}) with ${hostCC}...\n`, level: "info" });
+          try {
+            const compileProc = $`${hostCC} -O2 -o ${pluginHostOut} ${pluginHostSrc} -ldl`.nothrow();
+            let compileOut = "";
+            for await (const line of compileProc.lines()) { compileOut += line + "\n"; }
+            const compileResult = await compileProc;
+            if (compileResult.exitCode !== 0) {
+              sendToStream({ type: "output", text: `Warning: plugin host shim compilation failed — plugins will fall back to direct dlopen:\n${compileOut}\n`, level: "warn" });
+            } else {
+              sendToStream({ type: "output", text: `Plugin host shim compiled: ${pluginHostOut}\n`, level: "info" });
+            }
+          } catch (err: any) {
+            sendToStream({ type: "output", text: `Warning: plugin host shim compilation error — ${err?.message || err}\n`, level: "warn" });
+          }
+        }
+      }
+
       const isShellcodeMode = !!(config.useDonut || config.useLinuxShellcode);
 
       try {

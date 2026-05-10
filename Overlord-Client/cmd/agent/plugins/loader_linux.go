@@ -106,6 +106,18 @@ func loadNativePlugin(data []byte) (NativePlugin, error) {
 		return nil, errors.New("empty plugin binary")
 	}
 
+	// Prefer the subprocess shim approach: the main agent binary is statically
+	// linked (musl -static) which prevents dlopen from working in-process.
+	// The shim is a small dynamically-linked binary that can dlopen normally.
+	if len(pluginHostBinary) > 0 {
+		p, err := loadNativePluginSubproc(data)
+		if err == nil {
+			return p, nil
+		}
+		// Fall through — the shim may be incompatible with this target's libc.
+		_ = err
+	}
+
 	fd := C.so_memfd_create()
 	if fd < 0 {
 		return nil, errors.New("memfd_create failed")
