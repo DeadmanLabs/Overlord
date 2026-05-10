@@ -58,7 +58,7 @@ func HandleScreenshot(ctx context.Context, env *rt.Env, cmdID string, allDisplay
 	}
 
 	var buf bytes.Buffer
-	opts := &jpeg.Options{Quality: 85}
+	opts := &jpeg.Options{Quality: 92}
 	if err := jpeg.Encode(&buf, img, opts); err != nil {
 		log.Printf("screenshot: jpeg encode failed: %v", err)
 		return wire.WriteMsg(ctx, env.Conn, wire.CommandResult{

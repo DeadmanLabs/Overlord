@@ -21,20 +21,22 @@ function moveClientCardImmediately(msg) {
       ? CSS.escape(clientId)
       : clientId;
   const grid = document.getElementById("grid");
-  const card = grid?.querySelector(`article[data-id="${selectorId}"]`);
+  const card = grid?.querySelector(`[data-client-row][data-id="${selectorId}"]`);
   if (!grid || !card) return;
+
+  const parent = card.parentNode || grid;
 
   if (msg.event === "client_online") {
     card.dataset.online = "true";
-    card.classList.remove("card-offline");
-    grid.prepend(card);
+    card.classList.remove("card-offline", "cv-offline");
+    parent.prepend(card);
     return;
   }
 
   if (msg.event === "client_offline") {
     card.dataset.online = "false";
-    card.classList.add("card-offline");
-    grid.appendChild(card);
+    card.classList.add("card-offline", "cv-offline");
+    parent.appendChild(card);
   }
 }
 

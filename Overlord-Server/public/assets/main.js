@@ -115,7 +115,7 @@ function detectClientPlatform(clientId) {
     typeof CSS !== "undefined" && typeof CSS.escape === "function"
       ? CSS.escape(clientId)
       : clientId;
-  const card = document.querySelector(`article[data-id="${selectorId}"]`);
+  const card = document.querySelector(`[data-client-row][data-id="${selectorId}"]`);
   const os = String(card?.dataset?.os || "").toLowerCase();
   if (os.includes("windows")) return "windows";
   if (os.includes("darwin") || os.includes("mac")) return "mac";
@@ -129,7 +129,7 @@ function getClientCard(clientId) {
     typeof CSS !== "undefined" && typeof CSS.escape === "function"
       ? CSS.escape(clientId)
       : clientId;
-  return document.querySelector(`article[data-id="${selectorId}"]`);
+  return document.querySelector(`[data-client-row][data-id="${selectorId}"]`);
 }
 
 window.__uninstallingClientIds = window.__uninstallingClientIds || new Set();
@@ -558,8 +558,36 @@ async function loadPluginsForClient(clientId) {
   }
 }
 
+const PREF_LAYOUT_KEY = "overlord_layout";
+let rendererSetLayout = null;
+
+function applyLayoutToggleUI(layout) {
+  document.querySelectorAll("#layout-toggle .layout-toggle-btn").forEach((btn) => {
+    const active = btn.dataset.layout === layout;
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
+function setLayout(layout) {
+  const next = ["rows", "table", "cards"].includes(layout) ? layout : "rows";
+  localStorage.setItem(PREF_LAYOUT_KEY, next);
+  applyLayoutToggleUI(next);
+  if (rendererSetLayout) rendererSetLayout(next);
+  state.lastDigest = "";
+  loadWithOptions({ force: true, reorder: true });
+}
+
+document.querySelectorAll("#layout-toggle .layout-toggle-btn").forEach((btn) => {
+  btn.addEventListener("click", () => setLayout(btn.dataset.layout));
+});
+
 function initializeRenderer() {
-  const { renderMerge } = createRenderer({
+  const savedLayout = localStorage.getItem(PREF_LAYOUT_KEY) || "rows";
+  if (grid) grid.dataset.layout = ["rows", "table", "cards"].includes(savedLayout) ? savedLayout : "rows";
+  applyLayoutToggleUI(grid?.dataset.layout || "rows");
+
+  const { renderMerge, setLayout: rSetLayout } = createRenderer({
     grid,
     totalPill,
     pageLabel,
@@ -574,6 +602,7 @@ function initializeRenderer() {
     pingClient: (id) => sendCommand(id, "ping"),
     userRole: currentUser?.role,
   });
+  rendererSetLayout = rSetLayout;
   registerRenderer(renderMerge);
   refreshGroupFilter();
   loadWithOptions();

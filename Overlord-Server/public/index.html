@@ -111,6 +111,40 @@
           >
             Clear selection
           </button>
+          <div
+            id="layout-toggle"
+            role="group"
+            aria-label="Layout"
+            class="ml-auto inline-flex items-center rounded-lg border border-slate-700/60 bg-slate-800/70 p-0.5"
+          >
+            <button
+              type="button"
+              data-layout="rows"
+              class="layout-toggle-btn"
+              title="Row cards"
+              aria-pressed="true"
+            >
+              <i class="fa-solid fa-list"></i>
+            </button>
+            <button
+              type="button"
+              data-layout="table"
+              class="layout-toggle-btn"
+              title="Dense table"
+              aria-pressed="false"
+            >
+              <i class="fa-solid fa-table-list"></i>
+            </button>
+            <button
+              type="button"
+              data-layout="cards"
+              class="layout-toggle-btn"
+              title="Card wall"
+              aria-pressed="false"
+            >
+              <i class="fa-solid fa-grip"></i>
+            </button>
+          </div>
         </div>
         <!-- Bulk Actions Toolbar -->
         <div
@@ -156,7 +190,7 @@
             </button>
           </div>
         </div>
-        <div id="grid" class="flex flex-col gap-3 min-h-[420px]"></div>
+        <div id="grid" class="clients-grid min-h-[420px]" data-layout="rows"></div>
         <div id="pagination" class="flex items-center justify-center gap-3 py-4" style="visibility:hidden">
           <button
             id="prev"
